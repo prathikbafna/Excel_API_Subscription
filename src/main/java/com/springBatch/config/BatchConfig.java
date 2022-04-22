@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 
 import com.springBatch.entity.Product;
 import com.springBatch.listener.MyJobListener;
@@ -87,9 +89,7 @@ public class BatchConfig {
 					Workbook workbook = WorkbookFactory.create(fileInputStream);
 					org.apache.poi.ss.usermodel.Sheet sheet = workbook.getSheetAt(0);
 					int rownum = sheet.getLastRowNum();
-					System.out.println();
-					System.out.println(rownum);
-					System.out.println();
+					
 					for (Product product : items)
 			          {
 			        	System.out.println(product.toString());
@@ -111,6 +111,7 @@ public class BatchConfig {
 			}
 		};
 		
+		
 		return writer;
 	}
 	
@@ -129,10 +130,11 @@ public class BatchConfig {
 	public Step stepA() {
 		
 		return sf.get("stepA")
-				.<Product,Product>chunk(5)
+				.<Product,Product>chunk(3)
 				.reader(reader())
-				.writer(writer())
 				.processor(processor())
+				.writer(writer())
+				.taskExecutor(taskExecutor())
 				.build();
 	}
 	
@@ -154,7 +156,13 @@ public class BatchConfig {
 				.build();
 	}
 	
-	
+	@Bean
+	public TaskExecutor taskExecutor() {
+		SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor();
+		simpleAsyncTaskExecutor.setConcurrencyLimit(3);
+		
+		return simpleAsyncTaskExecutor;
+	}
 	
 	
 }
