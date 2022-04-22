@@ -1,0 +1,160 @@
+package com.springBatch.config;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.util.List;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.extensions.excel.RowMapper;
+import org.springframework.batch.extensions.excel.mapping.BeanWrapperRowMapper;
+import org.springframework.batch.extensions.excel.poi.PoiItemReader;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+
+import com.springBatch.entity.Product;
+import com.springBatch.listener.MyJobListener;
+import com.springBatch.processor.ProductProcessor;
+
+@Configuration
+@EnableBatchProcessing
+public class BatchConfig {
+
+	//reader class object
+	
+	@Bean
+    public PoiItemReader<Product> reader() {
+        PoiItemReader<Product> reader = new PoiItemReader<>();
+        reader.setLinesToSkip(0);
+        reader.setResource(new ClassPathResource("fumm.xlsx"));
+        reader.setRowMapper(excelRowMapper());
+        return reader;
+    }
+ 
+    private RowMapper<Product> excelRowMapper() {
+        BeanWrapperRowMapper<Product> rowMapper = new BeanWrapperRowMapper<>();
+        rowMapper.setTargetType(Product.class);
+        return rowMapper;
+    }
+	
+	//processor class object
+	@Bean
+	public ItemProcessor<Product, Product> processor(){
+		return new ProductProcessor();
+	}
+	
+	
+	
+	
+	  private static void createList(Product user, Row row) // creating cells for each row
+	  {
+	          Cell cell = row.createCell(0);
+	          cell.setCellValue(user.getEmail());
+	       
+	          cell = row.createCell(1);
+	          cell.setCellValue(user.getPlan());
+	          
+	          cell = row.createCell(2);
+	          cell.setCellValue(user.getStatus());
+	       
+	         
+	    }		
+    
+	//writer class object
+	@Bean
+	public ItemWriter<Product> writer(){
+		ItemWriter<Product> writer = new ItemWriter<Product>() {
+
+			@Override
+			public void write(List<? extends Product> items) throws Exception {
+				
+				try {
+					FileInputStream fileInputStream = new FileInputStream("updated.xlsx");
+					Workbook workbook = WorkbookFactory.create(fileInputStream);
+					org.apache.poi.ss.usermodel.Sheet sheet = workbook.getSheetAt(0);
+					int rownum = sheet.getLastRowNum();
+					System.out.println();
+					System.out.println(rownum);
+					System.out.println();
+					for (Product product : items)
+			          {
+			        	System.out.println(product.toString());
+			            Row row = sheet.createRow(++rownum);
+			            createList(product, row);     
+			          }   
+					
+					fileInputStream.close();
+					FileOutputStream fileOutputStream = new FileOutputStream("updated.xlsx");
+					workbook.write(fileOutputStream);
+					fileOutputStream.close();
+					
+					
+				}	
+				catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+				
+			}
+		};
+		
+		return writer;
+	}
+	
+	//Listener class object
+	@Bean
+	public JobExecutionListener listener() {
+		return new MyJobListener();
+	}
+	
+	//autowire step Builder factory
+	@Autowired
+	private StepBuilderFactory sf;
+	
+	//step object
+	@Bean
+	public Step stepA() {
+		
+		return sf.get("stepA")
+				.<Product,Product>chunk(5)
+				.reader(reader())
+				.writer(writer())
+				.processor(processor())
+				.build();
+	}
+	
+	
+	//autowire job builder factory
+	@Autowired
+	private JobBuilderFactory jf;
+	
+	
+	//job object
+	@Bean
+	public Job jobA() {
+		return jf.get("jobA")
+				.incrementer(new RunIdIncrementer())
+				.listener(listener())
+				.start(stepA())
+				//.next(stepB())
+				//.next(stepC())
+				.build();
+	}
+	
+	
+	
+	
+}
