@@ -72,6 +72,7 @@ public class BatchConfig {
 	        bl.setEmail(l[0]);
 	        bl.setPlan(l[1]);
 	        bl.setEmpId(l[2]);
+	        bl.setMobile(l[3]);
 	        System.out.println(bl.toString());
 
 	        return bl;

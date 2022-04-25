@@ -17,4 +17,5 @@ public class Product {
 	private String plan;
 	private String status;
 	private String empId;
+	private String mobile;
 }

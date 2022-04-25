@@ -23,29 +23,36 @@ public class ProductProcessor implements ItemProcessor<Product,Product>{
 	@Override
 	public Product process(Product item) throws Exception {
 			String email = item.getEmail();
+			String mobile = item.getMobile();
 			System.out.println(item.getEmpId());
 			if(email.matches(".*@zee.com")) 
 			{
-				
-				String p = item.getPlan();
-				int plan = Integer.parseInt(p);
-				
-				ResponseEntity<String> response2 =apiCall(email, plan);
-				String invs2 = response2.getBody();
-				if (invs2.toString().equals("Failed")) 
-				{
-					item.setStatus("Failed");
-				}
-				else if (invs2.toString().equals("User Already Exists")) 
-				{
-					item.setStatus("Already Granted");
+				if(mobile.matches("\\d{10}")) {
+					String p = item.getPlan();
+					int plan = Integer.parseInt(p);
+					
+					ResponseEntity<String> response2 =apiCall(email, plan);
+					String invs2 = response2.getBody();
+					if (invs2.toString().equals("Failed")) 
+					{
+						item.setStatus("Failed");
+					}
+					else if (invs2.toString().equals("User Already Exists")) 
+					{
+						item.setStatus("Already Granted");
+						return item;
+					}
+					else 
+					{
+						item.setStatus("granted");
+					}
 					return item;
 				}
-				else 
-				{
-					item.setStatus("granted");
+				else {
+					item.setStatus("Invalid mobile Number");
+					return item;
 				}
-				return item;
+				
 			}
 			else {
 				item.setStatus("Invalid Email Domain");
