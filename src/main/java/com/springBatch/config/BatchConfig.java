@@ -159,7 +159,7 @@ public class BatchConfig {
 	@Bean
 	public TaskExecutor taskExecutor() {
 		SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor();
-		simpleAsyncTaskExecutor.setConcurrencyLimit(3);
+		simpleAsyncTaskExecutor.setConcurrencyLimit(1);
 		
 		return simpleAsyncTaskExecutor;
 	}

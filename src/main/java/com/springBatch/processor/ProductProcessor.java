@@ -22,27 +22,36 @@ public class ProductProcessor implements ItemProcessor<Product,Product>{
 
 	@Override
 	public Product process(Product item) throws Exception {
-		//write the code here to provide the subscription
-		System.out.println("Hiiiiiiiiiiiiiii");
-		String email = item.getEmail();
-		String p = item.getPlan();
-		int plan = Integer.parseInt(p);
-		
-		ResponseEntity<String> response2 =apiCall(email, plan);
-		String invs2 = response2.getBody();
-		if (invs2.toString().equals("Failed")) {
-			item.setStatus("Failed");
+			String email = item.getEmail();
+			if(email.matches(".*@zee.com")) 
+			{
+				
+				String p = item.getPlan();
+				int plan = Integer.parseInt(p);
+				
+				ResponseEntity<String> response2 =apiCall(email, plan);
+				String invs2 = response2.getBody();
+				if (invs2.toString().equals("Failed")) 
+				{
+					item.setStatus("Failed");
+				}
+				else if (invs2.toString().equals("User Already Exists")) 
+				{
+					item.setStatus("Already Granted");
+					return item;
+				}
+				else 
+				{
+					item.setStatus("granted");
+				}
+				return item;
+			}
+			else {
+				item.setStatus("Invalid Email Domain");
+				return item;
+			}
+			
+			
 		}
-		else if (invs2.toString().equals("User Already Exists")) {
-			item.setStatus("Already Granted");
-			return null;
-		}
-		else {
-			item.setStatus("granted");
-		}
-		System.out.println(invs2.toString());
-		System.out.println("processor ended");
-		return item;
-	}
 
 }
