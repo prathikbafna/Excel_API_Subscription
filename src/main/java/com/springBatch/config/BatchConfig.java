@@ -19,6 +19,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.extensions.excel.RowMapper;
 import org.springframework.batch.extensions.excel.mapping.BeanWrapperRowMapper;
 import org.springframework.batch.extensions.excel.poi.PoiItemReader;
+import org.springframework.batch.extensions.excel.support.rowset.RowSet;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,16 +43,41 @@ public class BatchConfig {
     public PoiItemReader<Product> reader() {
         PoiItemReader<Product> reader = new PoiItemReader<>();
         reader.setLinesToSkip(0);
-        reader.setResource(new ClassPathResource("fumm.xlsx"));
-        reader.setRowMapper(excelRowMapper());
+        reader.setResource(new ClassPathResource("trail.xlsx"));
+//        reader.setRowMapper(excelRowMapper());
+        reader.setRowMapper(new RowMapperImpl());
         return reader;
     }
  
-    private RowMapper<Product> excelRowMapper() {
-        BeanWrapperRowMapper<Product> rowMapper = new BeanWrapperRowMapper<>();
-        rowMapper.setTargetType(Product.class);
-        return rowMapper;
-    }
+//    private RowMapper<Product> excelRowMapper() {
+//        BeanWrapperRowMapper<Product> rowMapper = new BeanWrapperRowMapper<>();
+//        rowMapper.setTargetType(Product.class);
+//        return rowMapper;
+//    }
+	
+	public class RowMapperImpl implements RowMapper<Product> {
+	    public RowMapperImpl() {
+	    }
+
+		@Override
+		public Product mapRow(RowSet rs) throws Exception {
+			// TODO Auto-generated method stub
+			
+			if (rs == null || rs.getCurrentRow() == null) {
+	            return null;
+	        }
+	        Product bl = new Product();
+	        String[] l = rs.getCurrentRow();
+	        System.out.println(l);
+	        bl.setEmail(l[0]);
+	        bl.setPlan(l[1]);
+	        bl.setEmpId(l[2]);
+	        System.out.println(bl.toString());
+
+	        return bl;
+		}
+
+	}
 	
 	//processor class object
 	@Bean

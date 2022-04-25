@@ -16,5 +16,5 @@ public class Product {
 	private String email;
 	private String plan;
 	private String status;
-
+	private String empId;
 }

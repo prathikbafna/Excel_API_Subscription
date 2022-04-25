@@ -23,6 +23,7 @@ public class ProductProcessor implements ItemProcessor<Product,Product>{
 	@Override
 	public Product process(Product item) throws Exception {
 			String email = item.getEmail();
+			System.out.println(item.getEmpId());
 			if(email.matches(".*@zee.com")) 
 			{
 				
